@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.p3proyectoparalela.HelloController">
+  <padding>
+    <Insets bottom="0.0" left="0.0" right="0.0" top="0.0"/>
+  </padding>
+
+  <VBox spacing="10.0" fx:id="progressLine" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0">
+    <HBox spacing="10.0">
+      <Button text="Start" onAction="#onStartButtonClick"/>
+      <Button text="Detener" onAction="#onStopButtonClick"/>
+      <Button text="Reanudar" onAction="#onResumeButtonClick"/>
+      <Label text="Secuencial" style="-fx-text-fill: blue;" fx:id="lblSecuencial"/>
+      <Label text="Concurrencia" style="-fx-text-fill: red;" fx:id="lblConcurrente"/>
+      <Label text="N° Hilos" style="-fx-text-fill: green;" fx:id="lblHilos"/>
+      <Label text="N° Elementos" style="-fx-text-fill: orange;" fx:id="lblElementos"/>
+    </HBox>
+    <ProgressBar fx:id="progressBar" progress="0.0" prefWidth="240"/>
+    <ProgressBar fx:id="progressBarP" progress="0.0" prefWidth="240"/>
+    <BarChart fx:id="timeChart" prefWidth="600" prefHeight="400">
+      <xAxis>
+        <CategoryAxis label="Procesamiento"/>
+      </xAxis>
+      <yAxis>
+        <NumberAxis label="Tiempo (ms)"/>
+      </yAxis>
+    </BarChart>
+  </VBox>
+</AnchorPane>
