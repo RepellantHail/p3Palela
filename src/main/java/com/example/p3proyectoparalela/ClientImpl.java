@@ -2,7 +2,6 @@ package com.example.p3proyectoparalela;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,25 +9,29 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 public class ClientImpl extends Application implements ClientInterface {
     private int clientNumber;
-    private String clientStatus;
+    private String clientStatus = "Esperando";
     private ServerInterface server;
     private Label lblClientNumber;
     private Label lblClientStatus;
-
-    public ClientImpl() {
-        this.clientNumber = clientNumber;
-        this.clientStatus = "Esperando";
+    public static void main(String[] args) {
+        launch(args);
     }
 
     @Override
-    public void start(Stage stage)  throws IOException {
+    public void start(Stage stage) {
+        setupUI(stage);
+        connectToServer();
+    }
+
+    public void setupUI(Stage stage) {
         lblClientNumber = new Label("Número de Cliente: " + clientNumber);
         lblClientStatus = new Label("Estado: " + clientStatus);
 
@@ -37,18 +40,21 @@ public class ClientImpl extends Application implements ClientInterface {
         vbox.setPadding(new Insets(20));
         vbox.getChildren().addAll(lblClientNumber, lblClientStatus);
 
-
         Scene scene = new Scene(vbox);
         stage.setScene(scene);
         stage.setTitle("P3 Proyecto");
+        stage.setWidth(300);
+        stage.setHeight(200);
         stage.show();
-        new Thread(this::connectToServer).start();
+        connectToServer();
     }
 
-    private void connectToServer() {
+    void connectToServer() {
         try {
-            server = (ServerInterface) Naming.lookup("//localhost/Server"); // Dirección del servidor RMI
-            server.registerClient(this); // Registrar el cliente en el servidor
+            Registry registry = LocateRegistry.getRegistry("127.0.0.1", 9000);
+            ServerInterface  remoteInterface  = (ServerInterface) registry.lookup("ServerP");
+            server = remoteInterface;
+            server.registerClient(this);
             updateClientStatus("Conectado al servidor");
         } catch (Exception e) {
             updateClientStatus("Error en la conexión del servidor");
@@ -73,7 +79,4 @@ public class ClientImpl extends Application implements ClientInterface {
         Platform.runLater(() -> label.setText(text));
     }
 
-    public static void main(String[] args) {
-        launch();
-    }
 }

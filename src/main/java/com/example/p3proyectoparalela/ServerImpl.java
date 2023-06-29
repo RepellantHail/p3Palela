@@ -2,14 +2,18 @@ package com.example.p3proyectoparalela;
 
 import javafx.scene.control.ProgressBar;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
+    private static final int RMI_PORT = 9000;
     private int numberOfClients = 0;
     private List<ClientInterface> clients;
     public ServerImpl() throws RemoteException {
+        super();
         clients = new ArrayList<>();
     }
 
@@ -32,9 +36,11 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
     public static void main(String[] args) {
         try {
             ServerImpl server = new ServerImpl();
-            System.out.println("El servidor RMI ha iniciado correctamente.");
+            Registry registry = LocateRegistry.createRegistry(RMI_PORT);
+            registry.rebind("ServerP", server);
+            System.out.println("Servidor RMI en ejecución...");
         } catch (RemoteException e) {
-            e.printStackTrace();
+            System.err.println("Error al iniciar el servidor RMI: " + e.getMessage());
         }
     }
 }
