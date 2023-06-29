@@ -7,12 +7,6 @@ import javafx.scene.chart.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextInputDialog;
-import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -22,7 +16,7 @@ import java.util.Random;
 
 import static com.example.p3proyectoparalela.BucketSort.*;
 
-public class HelloController {
+public class HelloController extends UnicastRemoteObject implements ServerInterface{
     @FXML
     private BarChart<String, Number> timeChart;
     private volatile boolean isSortingStopped = false;
@@ -57,13 +51,9 @@ public class HelloController {
     int numberOfClients = 0;
 
     public HelloController() throws RemoteException {
-        // Constructor para la clase HelloController que lanza RemoteException
-        super();
-
         try {
-            ServerImpl server = new ServerImpl();
             Registry registry = LocateRegistry.createRegistry(9000);
-            registry.rebind("ServerP", server);
+            registry.rebind("ServerP", this);
             System.out.println("Servidor RMI en ejecución...");
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,12 +99,6 @@ public class HelloController {
         // Muestra el número de hilos en la etiqueta correspondiente
         updateLabel(lblHilos, "N° Hilos: " + Integer.toString(numberOfThreads));
         updateLabel(lblElementos, "N° Elementos: " + Integer.toString(numberOfElements));
-        try {
-            numberOfClients = server.getClientCount();
-            System.out.println("Numero de clientes " + numberOfClients);
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
         updateLabel(lblClientes, "N° Clientes: " + Integer.toString(numberOfClients));
         numbers = generateRandomNumbers(numberOfElements);
         numbersConcurrent = numbers.clone();
@@ -240,4 +224,18 @@ public class HelloController {
     }
 
 
+    @Override
+    public void sortParallel(float[] numbersParallel, int tiempoHilo, ProgressBar progressBarP, int numberOfThreads, int numberOfCLients) throws RemoteException {
+
+    }
+
+    @Override
+    public int getClientCount() throws RemoteException {
+        return 0;
+    }
+
+    @Override
+    public void registerClient(ClientInterface client) throws RemoteException {
+
+    }
 }

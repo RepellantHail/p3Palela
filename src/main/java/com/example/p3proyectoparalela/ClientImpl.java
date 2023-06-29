@@ -28,7 +28,6 @@ public class ClientImpl extends Application implements ClientInterface {
     @Override
     public void start(Stage stage) {
         setupUI(stage);
-        connectToServer();
     }
 
     public void setupUI(Stage stage) {
@@ -51,10 +50,9 @@ public class ClientImpl extends Application implements ClientInterface {
 
     void connectToServer() {
         try {
-            Registry registry = LocateRegistry.getRegistry("127.0.0.1", 9000);
+            Registry registry = LocateRegistry.getRegistry("localhost", 9000);
             ServerInterface  remoteInterface  = (ServerInterface) registry.lookup("ServerP");
             server = remoteInterface;
-            server.registerClient(this);
             updateClientStatus("Conectado al servidor");
         } catch (Exception e) {
             updateClientStatus("Error en la conexión del servidor");
