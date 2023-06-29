@@ -1,6 +1,5 @@
 package com.example.p3proyectoparalela;
 
-
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -52,6 +51,7 @@ public class HelloController extends UnicastRemoteObject implements ClientInterf
     private boolean isSortingP = false;
     int numberOfElements = 100;
     int tiempoHilo = 1;
+    int numberOfClients = 0;
     public HelloController() throws RemoteException {
         // Constructor para la clase HelloController que lanza RemoteException
         super();
@@ -69,6 +69,9 @@ public class HelloController extends UnicastRemoteObject implements ClientInterf
         isSortingS = true;
         isSortingC = true;
         isSortingP = true;
+
+        // Inicializar el servidor RMI al abrir la ventana
+        initializeServer();
 
 //        Solicitar n Hilos
         TextInputDialog dialog = new TextInputDialog("1");
@@ -92,6 +95,13 @@ public class HelloController extends UnicastRemoteObject implements ClientInterf
         // Muestra el número de hilos en la etiqueta correspondiente
         updateLabel(lblHilos, "N° Hilos: "+Integer.toString(numberOfThreads));
         updateLabel(lblElementos, "N° Elementos: "+Integer.toString(numberOfElements));
+        try {
+            numberOfClients = server.getClientCount();
+            System.out.println("Numero de clientes "+numberOfClients);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
+        updateLabel(lblClientes, "N° Clientes: "+Integer.toString(numberOfClients));
         numbers = generateRandomNumbers(numberOfElements);
         numbersConcurrent = numbers.clone();
         numbersParallel = numbers.clone();
@@ -155,7 +165,7 @@ public class HelloController extends UnicastRemoteObject implements ClientInterf
         sortingThread.start();
         Thread sortingThreadConcurrent = new Thread(() -> {
             long startTime = System.currentTimeMillis();
-            bucketSortC(numbersConcurrent, numbersConcurrent.length, tiempoHilo, getProgressBarP(),numberOfThreads);
+            bucketSortC(numbersConcurrent, numbersConcurrent.length, tiempoHilo, getProgressBarC(),numberOfThreads);
             long endTime = System.currentTimeMillis();
             isSortingC = false;
             Platform.runLater(() -> {
@@ -171,16 +181,15 @@ public class HelloController extends UnicastRemoteObject implements ClientInterf
         sortingThreadConcurrent.start();
         Thread sortingThreadParallel = new Thread(() -> {
             long startTime = System.currentTimeMillis();
-            bucketSortC(numbersParallel, numbersParallel.length, tiempoHilo, getProgressBarP(),numberOfThreads);
+            try {
+                server.sortParallel(numbersParallel, tiempoHilo, getProgressBarP(), numberOfThreads, numberOfClients);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             long endTime = System.currentTimeMillis();
             isSortingP = false;
             Platform.runLater(() -> {
-                for (float n : numbersParallel) {
-                    System.out.println(n);
-                }
                 System.out.println("Concurrente terminó");
-
-                // Actualizar el gráfico con el tiempo de procesamiento concurrente
                 updateChart("¨Paralelo", endTime - startTime);
             });
         });
@@ -222,7 +231,10 @@ public class HelloController extends UnicastRemoteObject implements ClientInterf
 
     private void initializeServer() {
         try {
-            server = (ServerInterface) Naming.lookup("//localhost/Server");
+            LocateRegistry.createRegistry(1099);
+            server = new ServerImpl();
+            Naming.rebind("//localhost/Server", server);
+            System.out.println("El servidor RMI ha iniciado correctamente.");
         } catch (Exception e) {
             e.printStackTrace();
         }
