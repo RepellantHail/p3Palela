@@ -8,18 +8,26 @@ import javafx.scene.chart.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextInputDialog;
+import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Optional;
 import java.util.Random;
 
-import static com.example.p3proyectoparalela.BucketSort.bucketSort;
-import static com.example.p3proyectoparalela.BucketSort.bucketSortP;
+import static com.example.p3proyectoparalela.BucketSort.*;
 
-public class HelloController {
+public class HelloController extends UnicastRemoteObject implements ClientInterface {
     @FXML
     private BarChart<String, Number> timeChart;
     private volatile boolean isSortingStopped = false;
     @FXML
-    private ProgressBar progressBar;
+    private ProgressBar progressBarS;
+    @FXML
+    private ProgressBar progressBarC;
     @FXML
     private ProgressBar progressBarP;
     @FXML
@@ -27,24 +35,39 @@ public class HelloController {
     @FXML
     private Label lblConcurrente;
     @FXML
+    private Label lblParalelo;
+    @FXML
     private Label lblHilos;
     @FXML
     private Label lblElementos;
+    @FXML
+    private Label lblClientes;
+    private ServerInterface server;
     private int numberOfThreads = 2;
     private float[] numbers;
+    private float[] numbersConcurrent;
     private float[] numbersParallel;
     private boolean isSortingS = false;
+    private boolean isSortingC = false;
     private boolean isSortingP = false;
     int numberOfElements = 100;
     int tiempoHilo = 1;
-    public ProgressBar getProgressBar() {
-        return progressBar;
+    public HelloController() throws RemoteException {
+        // Constructor para la clase HelloController que lanza RemoteException
+        super();
+    }
+    public ProgressBar getProgressBarS() {
+        return progressBarS;
+    }
+    public ProgressBar getProgressBarC() {
+        return progressBarC;
     }
     public ProgressBar getProgressBarP() {
         return progressBarP;
     }
     public void onStartButtonClick(ActionEvent actionEvent) {
         isSortingS = true;
+        isSortingC = true;
         isSortingP = true;
 
 //        Solicitar n Hilos
@@ -70,9 +93,10 @@ public class HelloController {
         updateLabel(lblHilos, "N° Hilos: "+Integer.toString(numberOfThreads));
         updateLabel(lblElementos, "N° Elementos: "+Integer.toString(numberOfElements));
         numbers = generateRandomNumbers(numberOfElements);
+        numbersConcurrent = numbers.clone();
         numbersParallel = numbers.clone();
 
-        Thread counterThread = new Thread(() -> {
+        Thread counterThreadS = new Thread(() -> {
             int count = 0;
             while (isSortingS && !isSortingStopped) {
                 count++;
@@ -85,11 +109,11 @@ public class HelloController {
             }
         });
 
-        Thread counterThreadP = new Thread(() -> {
-            int countP = 0;
-            while (isSortingP && !isSortingStopped) {
-                countP++;
-                updateLabel(lblConcurrente, Integer.toString(countP));
+        Thread counterThreadC = new Thread(() -> {
+            int countC = 0;
+            while (isSortingC && !isSortingStopped) {
+                countC++;
+                updateLabel(lblConcurrente, Integer.toString(countC));
                 try {
                     Thread.sleep(1000);//Tiempo de actualizacion label
                 } catch (InterruptedException e) {
@@ -98,12 +122,26 @@ public class HelloController {
             }
         });
 
-        counterThread.start();
+        Thread counterThreadP = new Thread(() -> {
+            int countC = 0;
+            while (isSortingP && !isSortingStopped) {
+                countC++;
+                updateLabel(lblParalelo, Integer.toString(countC));
+                try {
+                    Thread.sleep(1000);//Tiempo de actualizacion label
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        counterThreadS.start();
+        counterThreadC.start();
         counterThreadP.start();
 
         Thread sortingThread = new Thread(() -> {
             long startTime = System.currentTimeMillis();
-            bucketSort(numbers, numbers.length, tiempoHilo, getProgressBar());
+            bucketSort(numbers, numbers.length, tiempoHilo, getProgressBarS());
             long endTime = System.currentTimeMillis();
             isSortingS = false;
             for (float n : numbers){
@@ -115,10 +153,25 @@ public class HelloController {
             updateChart("Secuencial", endTime - startTime);
         });
         sortingThread.start();
-        //Paralelo
+        Thread sortingThreadConcurrent = new Thread(() -> {
+            long startTime = System.currentTimeMillis();
+            bucketSortC(numbersConcurrent, numbersConcurrent.length, tiempoHilo, getProgressBarP(),numberOfThreads);
+            long endTime = System.currentTimeMillis();
+            isSortingC = false;
+            Platform.runLater(() -> {
+                for (float n : numbersConcurrent) {
+                    System.out.println(n);
+                }
+                System.out.println("Concurrente terminó");
+
+                // Actualizar el gráfico con el tiempo de procesamiento concurrente
+                updateChart("Concurrente", endTime - startTime);
+            });
+        });
+        sortingThreadConcurrent.start();
         Thread sortingThreadParallel = new Thread(() -> {
             long startTime = System.currentTimeMillis();
-            bucketSortP(numbersParallel, numbersParallel.length, tiempoHilo, getProgressBarP(),numberOfThreads);
+            bucketSortC(numbersParallel, numbersParallel.length, tiempoHilo, getProgressBarP(),numberOfThreads);
             long endTime = System.currentTimeMillis();
             isSortingP = false;
             Platform.runLater(() -> {
@@ -128,7 +181,7 @@ public class HelloController {
                 System.out.println("Concurrente terminó");
 
                 // Actualizar el gráfico con el tiempo de procesamiento concurrente
-                updateChart("Concurrente", endTime - startTime);
+                updateChart("¨Paralelo", endTime - startTime);
             });
         });
         sortingThreadParallel.start();
@@ -161,7 +214,17 @@ public class HelloController {
             timeChart.getData().add(series);
         });
     }
+    @Override
+    public void returnPartialResult(float[] numbersParallel) throws RemoteException {
+        // Implementación del método para recibir los resultados parciales del servidor RMI
+        // Puedes agregar el código necesario aquí para manejar los resultados parciales
+    }
 
-
-
+    private void initializeServer() {
+        try {
+            server = (ServerInterface) Naming.lookup("//localhost/Server");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

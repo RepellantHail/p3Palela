@@ -46,7 +46,33 @@
       <artifactId>junit-jupiter-engine</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>              </dependencies>
+    </dependency>
+      <dependency>
+          <groupId>com.github.prt2121</groupId>
+          <artifactId>ProgressBar</artifactId>
+          <version>1.0</version>
+      </dependency>
+    <dependency>
+      <groupId>com.github.prt2121</groupId>
+      <artifactId>ProgressBar</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.prt2121</groupId>
+      <artifactId>ProgressBar</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.prt2121</groupId>
+      <artifactId>ProgressBar</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.prt2121</groupId>
+      <artifactId>ProgressBar</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
 
   <build>
         <plugins>

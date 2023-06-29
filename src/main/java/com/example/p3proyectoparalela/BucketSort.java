@@ -44,7 +44,7 @@ public class BucketSort {
         }
     }
 
-    public static void bucketSortP(float arr[], int n, int tiempo, ProgressBar progressBar,int numThreads) {
+    public static void bucketSortC(float arr[], int n, int tiempo, ProgressBar progressBar,int numThreads) {
         if (n <= 0)
             return;
         Thread[] threads = new Thread[numThreads]; // Arreglo de hilos
