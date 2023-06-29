@@ -16,7 +16,6 @@ public class ClientImpl extends Application implements ClientInterface {
     private int clientNumber;
     private String clientStatus;
     private ServerInterface server;
-
     private Label lblClientNumber;
     private Label lblClientStatus;
 
@@ -39,17 +38,16 @@ public class ClientImpl extends Application implements ClientInterface {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Cliente RMI");
         primaryStage.show();
-
-        initializeServer();
+        connectToServer();
     }
 
-    private void initializeServer() {
+    private void connectToServer() {
         try {
-            server = (ServerInterface) Naming.lookup("//localhost/Server");
-            server.registerClient(this);
-            System.out.println("Cliente " + clientNumber + " registrado en el servidor RMI.");
+            server = (ServerInterface) Naming.lookup("//localhost/Server"); // Dirección del servidor RMI
+            server.registerClient(this); // Registrar el cliente en el servidor
+            updateClientStatus("Conectado al servidor");
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error al conectarse al servidor: " + e.getMessage());
         }
     }
 
@@ -71,7 +69,12 @@ public class ClientImpl extends Application implements ClientInterface {
     }
 
     public static void main(String[] args) {
-        int clientNumber = Integer.parseInt(args[0]); // Obtener el número de cliente del argumento de línea de comandos
+        if (args.length == 0) {
+            System.out.println("Se debe proporcionar el número de cliente como argumento.");
+            return;
+        }
+
+        int clientNumber = Integer.parseInt(args[0]);
         ClientImpl client = new ClientImpl(clientNumber);
         client.launch(args);
     }

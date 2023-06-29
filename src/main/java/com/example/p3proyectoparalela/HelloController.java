@@ -55,6 +55,8 @@ public class HelloController extends UnicastRemoteObject implements ClientInterf
     public HelloController() throws RemoteException {
         // Constructor para la clase HelloController que lanza RemoteException
         super();
+        // Inicializar el servidor RMI al abrir la ventana
+        initializeServer();
     }
     public ProgressBar getProgressBarS() {
         return progressBarS;
@@ -69,9 +71,6 @@ public class HelloController extends UnicastRemoteObject implements ClientInterf
         isSortingS = true;
         isSortingC = true;
         isSortingP = true;
-
-        // Inicializar el servidor RMI al abrir la ventana
-        initializeServer();
 
 //        Solicitar n Hilos
         TextInputDialog dialog = new TextInputDialog("1");
