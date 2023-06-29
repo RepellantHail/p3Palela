@@ -51,6 +51,7 @@ public class HelloController extends UnicastRemoteObject implements ServerInterf
     int numberOfClients = 0;
 
     public HelloController() throws RemoteException {
+        super();
         try {
             Registry registry = LocateRegistry.createRegistry(9000);
             registry.rebind("ServerP", this);
@@ -99,6 +100,11 @@ public class HelloController extends UnicastRemoteObject implements ServerInterf
         // Muestra el número de hilos en la etiqueta correspondiente
         updateLabel(lblHilos, "N° Hilos: " + Integer.toString(numberOfThreads));
         updateLabel(lblElementos, "N° Elementos: " + Integer.toString(numberOfElements));
+        try {
+            numberOfClients = server.getClientCount();
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
         updateLabel(lblClientes, "N° Clientes: " + Integer.toString(numberOfClients));
         numbers = generateRandomNumbers(numberOfElements);
         numbersConcurrent = numbers.clone();

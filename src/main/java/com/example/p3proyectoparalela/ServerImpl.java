@@ -25,8 +25,8 @@ public class ServerImpl extends UnicastRemoteObject implements ServerInterface {
     }
 
     public void registerClient(ClientInterface client) throws RemoteException {
-        clients.add(client);
-        numberOfClients = clients.size(); // Actualizar el contador de clientes
+        clients.add(client);// Actualizar el contador de clientes
+        numberOfClients = clients.size();
         System.out.println("Cliente registrado. Total de clientes: " + numberOfClients);
     }
 
